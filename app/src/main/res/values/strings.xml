@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">زیست‌نگار ۳بعدی</string>
+    <string name="nav_home">آزمایشگاه</string>
+    <string name="nav_lab3d">مدل سه‌بعدی</string>
+    <string name="nav_quiz">چالش کنکور</string>
+    <string name="nav_records">کارنامه</string>
+    <string name="nav_settings">تنظیمات</string>
+    <string name="offline_badge">اجرای ۱۰۰٪ آفلاین و محلی</string>
+    <string name="piano_playing">نوای پیانو فعال</string>
+    <string name="piano_muted">نوای پیانو خاموش</string>
+    <string name="xray_label">شفاف‌سازی لایه‌های بیرونی (X-Ray)</string>
+    <string name="figure_2d_title">توضیح تکمیلی شکل دوبعدی کتاب</string>
+    <string name="update_button_label">بررسی و دریافت بسته سوالات از لینک JSON</string>
+</resources>

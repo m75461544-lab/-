@@ -1,0 +1,6 @@
+{
+  "name": "زیست‌نگار ۳بعدی",
+  "description": "بازی آموزشی و آزمایشگاه سه‌بعدی سوالات سخت کنکور زیست دهم (فصل ۱: گفتار ۱ و ۲) با اجرای ۱۰۰٪ آفلاین و موسیقی آرامش‌بخش پیانو",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

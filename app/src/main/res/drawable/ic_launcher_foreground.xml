@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer cell membrane ring inside 66dp safe zone (center 54,54 radius 27) -->
+    <path
+        android:fillColor="#1A2EE6D6"
+        android:pathData="M54,27a27,27 0,1 0,0 54a27,27 0,1 0,0 -54z"
+        android:strokeWidth="2.8"
+        android:strokeColor="#2EE6D6" />
+    <!-- Inner organelle / DNA helix curves -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M42,35 C58,41 58,49 42,54 C26,59 26,67 42,73"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:strokeColor="#34D399" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M66,35 C50,41 50,49 66,54 C82,59 82,67 66,73"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:strokeColor="#2EE6D6" />
+    <!-- Base pair rungs -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M45,42 L63,42 M41,54 L67,54 M45,66 L63,66"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeColor="#FBBF24" />
+    <!-- Glowing central nucleus node -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M54,50a4,4 0,1 0,0 8a4,4 0,1 0,0 -8z" />
+</vector>

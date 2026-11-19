@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="obsidian_bg">#070D14</color>
+    <color name="lab_surface">#0F1A26</color>
+    <color name="bio_cyan">#2EE6D6</color>
+    <color name="chloroplast_emerald">#34D399</color>
+    <color name="atp_gold">#FBBF24</color>
+    <color name="coral_alert">#FB7185</color>
+</resources>
