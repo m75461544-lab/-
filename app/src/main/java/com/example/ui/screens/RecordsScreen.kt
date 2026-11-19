@@ -53,6 +53,10 @@ import com.example.ui.components.DifficultyBadge
 import com.example.ui.components.Figure2DExplanationBox
 import com.example.ui.components.LabGlassCard
 import com.example.ui.components.LabTopStatusBar
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.LocalAppLanguage
+import com.example.ui.i18n.LocalAppStrings
+import com.example.ui.i18n.localized
 import com.example.ui.theme.AtpGold
 import com.example.ui.theme.BioCyan
 import com.example.ui.theme.ChloroplastEmerald
@@ -73,11 +77,13 @@ fun RecordsScreen(
     questions: List<QuestionEntity>,
     pianoEnabled: Boolean,
     onTogglePiano: () -> Unit,
+    onSelectLanguage: (AppLanguage) -> Unit,
     onToggleBookmark: (QuestionEntity) -> Unit,
     onStartMistakesReview: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    val strings = LocalAppStrings.current
     val reviewItems = remember(questions) {
         questions.filter { it.isBookmarked || it.lastAttemptCorrect == false || it.timesWrong > 0 }
     }
@@ -95,9 +101,10 @@ fun RecordsScreen(
         ) {
             item {
                 LabTopStatusBar(
-                    title = "کارنامه و مرور خطاها",
+                    title = strings.recordsScreenTitle,
                     pianoEnabled = pianoEnabled,
                     onTogglePiano = onTogglePiano,
+                    onSelectLanguage = onSelectLanguage,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -120,12 +127,12 @@ fun RecordsScreen(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "${stats.bestKonkurPercent.roundToInt()}٪",
+                            text = "${stats.bestKonkurPercent.roundToInt()}${strings.percentSymbol}",
                             style = MaterialTheme.typography.headlineSmall,
                             color = AtpGold
                         )
                         Text(
-                            text = "بهترین درصد کنکوری",
+                            text = strings.statBestPercent,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -148,7 +155,7 @@ fun RecordsScreen(
                             color = BioCyan
                         )
                         Text(
-                            text = "بالاترین امتیاز ثبت‌شده",
+                            text = strings.highestScoreLabel,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -165,13 +172,13 @@ fun RecordsScreen(
                     Tab(
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
-                        text = { Text("تاریخچه آزمون‌ها (${records.size})") },
+                        text = { Text("${strings.tabHistory} (${records.size})") },
                         modifier = Modifier.testTag("tab_history")
                     )
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
-                        text = { Text("مرور و نشان‌شده (${reviewItems.size})") },
+                        text = { Text("${strings.tabReview} (${reviewItems.size})") },
                         modifier = Modifier.testTag("tab_review")
                     )
                 }
@@ -182,13 +189,13 @@ fun RecordsScreen(
                     item {
                         LabGlassCard(modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = "هنوز آزمونی ثبت نشده است",
+                                text = strings.noRecordsTitle,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = BioCyan
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "پس از پایان اولین چالش کنکور یا کاوش آزاد، درصد کنکوری، امتیاز و زمان شما در اینجا ذخیره می‌شود.",
+                                text = strings.noRecordsBody,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -214,7 +221,7 @@ fun RecordsScreen(
                                 .testTag("records_start_review_button")
                         ) {
                             Text(
-                                text = "شروع آزمون مجدد از سوالات غلط و نشان‌شده",
+                                text = strings.startMistakesReviewButton,
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
@@ -229,13 +236,13 @@ fun RecordsScreen(
                     item {
                         LabGlassCard(modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = "هیچ خطا یا سوال نشان‌شده‌ای ثبت نشده است",
+                                text = strings.noMistakesTitle,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = ChloroplastEmerald
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "عالی است! هنگام حل سوالات می‌توانید تست‌های نکته‌دار را ستاره‌دار کنید تا برای مرور شب امتحان اینجا جمع شوند.",
+                                text = strings.noMistakesBody,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -251,13 +258,14 @@ fun RecordsScreen(
 
 @Composable
 private fun QuizRecordCard(record: QuizRecordEntity) {
+    val strings = LocalAppStrings.current
     val dateStr = remember(record.timestamp) {
         SimpleDateFormat("yyyy/MM/dd - HH:mm", Locale.getDefault()).format(Date(record.timestamp))
     }
     val lessonLabel = when (record.lessonFilter) {
-        1 -> "گفتار ۱"
-        2 -> "گفتار ۲"
-        else -> "گفتار ۱ و ۲"
+        1 -> strings.lesson1Short
+        2 -> strings.lesson2Short
+        else -> strings.lesson1And2Short
     }
 
     LabGlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -268,7 +276,7 @@ private fun QuizRecordCard(record: QuizRecordEntity) {
         ) {
             Column {
                 Text(
-                    text = record.mode,
+                    text = strings.localizeModeName(record.mode),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -279,7 +287,7 @@ private fun QuizRecordCard(record: QuizRecordEntity) {
                 )
             }
             BadgeChip(
-                text = "${record.konkurPercent.roundToInt()}٪ کنکور",
+                text = "${record.konkurPercent.roundToInt()}${strings.percentSymbol} ${strings.konkurPercentBadge}",
                 textColor = if (record.konkurPercent >= 50f) ChloroplastEmerald else AtpGold,
                 containerColor = if (record.konkurPercent >= 50f) ChloroplastEmerald.copy(alpha = 0.16f) else AtpGold.copy(alpha = 0.16f)
             )
@@ -290,22 +298,22 @@ private fun QuizRecordCard(record: QuizRecordEntity) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "درست: ${record.correctCount}",
+                text = "${strings.metricCorrect}: ${record.correctCount}",
                 style = MaterialTheme.typography.bodySmall,
                 color = ChloroplastEmerald
             )
             Text(
-                text = "غلط: ${record.wrongCount}",
+                text = "${strings.metricWrong}: ${record.wrongCount}",
                 style = MaterialTheme.typography.bodySmall,
                 color = CoralTrap
             )
             Text(
-                text = "نزده: ${record.unansweredCount}",
+                text = "${strings.metricSkipped}: ${record.unansweredCount}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "امتیاز: ${record.scorePoints}",
+                text = "${strings.metricScore}: ${record.scorePoints}",
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
                 color = AtpGold
@@ -320,10 +328,13 @@ private fun ReviewQuestionCard(
     onToggleBookmark: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val strings = LocalAppStrings.current
+    val language = LocalAppLanguage.current
+    val localizedQuestion = remember(question, language) { question.localized(language) }
 
     LabGlassCard(
         modifier = Modifier.fillMaxWidth(),
-        borderColor = if (question.lastAttemptCorrect == false) CoralTrap.copy(alpha = 0.45f) else BioCyan.copy(alpha = 0.35f)
+        borderColor = if (localizedQuestion.lastAttemptCorrect == false) CoralTrap.copy(alpha = 0.45f) else BioCyan.copy(alpha = 0.35f)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -331,30 +342,30 @@ private fun ReviewQuestionCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                BadgeChip(text = "گفتار ${question.lesson}")
-                DifficultyBadge(question.difficulty)
+                BadgeChip(text = "${if (localizedQuestion.lesson == 1) strings.lesson1Short else strings.lesson2Short}")
+                DifficultyBadge(localizedQuestion.difficulty)
             }
             IconButton(
                 onClick = onToggleBookmark,
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(
-                    imageVector = if (question.isBookmarked) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
-                    contentDescription = "نشان‌گذاری سوال",
-                    tint = if (question.isBookmarked) AtpGold else MaterialTheme.colorScheme.onSurfaceVariant
+                    imageVector = if (localizedQuestion.isBookmarked) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
+                    contentDescription = strings.bookmarkDesc,
+                    tint = if (localizedQuestion.isBookmarked) AtpGold else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = question.prompt,
+            text = localizedQuestion.prompt,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(8.dp))
-        val options = listOf(question.optionA, question.optionB, question.optionC, question.optionD)
+        val options = listOf(localizedQuestion.optionA, localizedQuestion.optionB, localizedQuestion.optionC, localizedQuestion.optionD)
         Text(
-            text = "پاسخ صحیح: ${options.getOrElse(question.correctIndex) { "" }}",
+            text = "${strings.correctAnswerPrefix} ${options.getOrElse(localizedQuestion.correctIndex) { "" }}",
             style = MaterialTheme.typography.labelMedium,
             color = ChloroplastEmerald
         )
@@ -362,7 +373,7 @@ private fun ReviewQuestionCard(
             onClick = { expanded = !expanded },
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text(text = if (expanded) "بستن پاسخ تشریحی" else "مشاهده پاسخ تشریحی")
+            Text(text = if (expanded) strings.closeExplanation else strings.viewExplanation)
             Icon(
                 imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                 contentDescription = null
@@ -371,11 +382,11 @@ private fun ReviewQuestionCard(
         AnimatedVisibility(visible = expanded) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = question.explanation,
+                    text = localizedQuestion.explanation,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                question.figure2dNote?.let { note ->
+                localizedQuestion.figure2dNote?.let { note ->
                     Figure2DExplanationBox(note = note)
                 }
             }

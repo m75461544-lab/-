@@ -36,6 +36,10 @@ import com.example.bio3d.BioModelType
 import com.example.ui.components.Bio3DInspectorCard
 import com.example.ui.components.LabGlassCard
 import com.example.ui.components.LabTopStatusBar
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.LocalAppLanguage
+import com.example.ui.i18n.LocalAppStrings
+import com.example.ui.i18n.localizedMeta
 import com.example.ui.theme.BioCyan
 import com.example.ui.theme.BioCyanContainer
 import com.example.ui.theme.ChloroplastEmerald
@@ -47,6 +51,7 @@ fun BioLab3DScreen(
     labState: BioLab3DState,
     pianoEnabled: Boolean,
     onTogglePiano: () -> Unit,
+    onSelectLanguage: (AppLanguage) -> Unit,
     onSelectModel: (BioModelType) -> Unit,
     onXrayChange: (Float) -> Unit,
     onSelectPart: (String) -> Unit,
@@ -56,6 +61,10 @@ fun BioLab3DScreen(
     onPracticeQuiz: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
+    val language = LocalAppLanguage.current
+    val activeMeta = labState.activeModel.localizedMeta(language)
+
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
@@ -69,9 +78,10 @@ fun BioLab3DScreen(
         ) {
             item {
                 LabTopStatusBar(
-                    title = "آزمایشگاه تشریح ۳بعدی",
+                    title = strings.lab3dScreenTitle,
                     pianoEnabled = pianoEnabled,
                     onTogglePiano = onTogglePiano,
+                    onSelectLanguage = onSelectLanguage,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -80,12 +90,13 @@ fun BioLab3DScreen(
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(BioModelType.entries, key = { it.id }) { model ->
+                        val modelMeta = model.localizedMeta(language)
                         FilterChip(
                             selected = labState.activeModel == model,
                             onClick = { onSelectModel(model) },
                             label = {
                                 Text(
-                                    text = model.titleFa,
+                                    text = modelMeta.title,
                                     style = MaterialTheme.typography.labelMedium
                                 )
                             },
@@ -114,7 +125,7 @@ fun BioLab3DScreen(
                     onZoomChange = onZoomChange,
                     onResetCamera = onResetCamera,
                     viewportHeight = 320.dp,
-                    show2DNoteIfPresent = labState.activeModel.schematic2DNoteFa
+                    show2DNoteIfPresent = activeMeta.schematic2DNote
                 )
             }
 
@@ -132,14 +143,14 @@ fun BioLab3DScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "تحلیل فضایی و نکات کلیدی (${labState.activeModel.lessonTag})",
+                            text = "${strings.spatialAnalysisTitle} (${activeMeta.lessonTag})",
                             style = MaterialTheme.typography.titleSmall,
                             color = ChloroplastEmerald
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = labState.activeModel.summaryFa,
+                        text = activeMeta.summary,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -162,7 +173,7 @@ fun BioLab3DScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "آزمون چالشی از مفاهیم فصل ۱",
+                            text = strings.practiceChapter1Button,
                             style = MaterialTheme.typography.labelLarge
                         )
                     }

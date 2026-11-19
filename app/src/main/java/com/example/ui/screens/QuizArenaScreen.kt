@@ -61,12 +61,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.bio3d.BioModelType
 import com.example.data.local.QuestionEntity
+import com.example.ui.components.AnswerFeedbackStatus
 import com.example.ui.components.BadgeChip
 import com.example.ui.components.Bio3DInspectorCard
+import com.example.ui.components.BioluminescentAnswerFeedbackCard
 import com.example.ui.components.DifficultyBadge
-import com.example.ui.components.Figure2DExplanationBox
 import com.example.ui.components.LabGlassCard
 import com.example.ui.components.LabTopStatusBar
+import com.example.ui.components.rememberBioluminescentOptionStyle
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.LocalAppLanguage
+import com.example.ui.i18n.LocalAppStrings
+import com.example.ui.i18n.localized
+import com.example.ui.i18n.localizedMeta
 import com.example.ui.theme.AtpGold
 import com.example.ui.theme.BioCyan
 import com.example.ui.theme.BioCyanContainer
@@ -89,6 +96,7 @@ fun QuizArenaScreen(
     labState: BioLab3DState,
     pianoEnabled: Boolean,
     onTogglePiano: () -> Unit,
+    onSelectLanguage: (AppLanguage) -> Unit,
     onStartQuiz: (QuizMode, Int) -> Unit,
     onSelectOption: (Int) -> Unit,
     onSubmitAnswer: () -> Unit,
@@ -144,9 +152,10 @@ fun QuizArenaScreen(
 
             else -> {
                 QuizLauncherSetupView(
-                    emptyMessage = quizState.emptyReviewMessage,
+                    emptyMessage = if (quizState.emptyReviewMessage != null) LocalAppStrings.current.emptyReviewMessage else null,
                     pianoEnabled = pianoEnabled,
                     onTogglePiano = onTogglePiano,
+                    onSelectLanguage = onSelectLanguage,
                     onStartQuiz = onStartQuiz
                 )
             }
@@ -159,10 +168,12 @@ private fun QuizLauncherSetupView(
     emptyMessage: String?,
     pianoEnabled: Boolean,
     onTogglePiano: () -> Unit,
+    onSelectLanguage: (AppLanguage) -> Unit,
     onStartQuiz: (QuizMode, Int) -> Unit
 ) {
     var selectedMode by rememberSaveable { mutableStateOf(QuizMode.TIMED_KONKUR) }
     var selectedLesson by rememberSaveable { mutableIntStateOf(0) }
+    val strings = LocalAppStrings.current
 
     LazyColumn(
         modifier = Modifier
@@ -173,9 +184,10 @@ private fun QuizLauncherSetupView(
     ) {
         item {
             LabTopStatusBar(
-                title = "صحنه چالش کنکور",
+                title = strings.quizArenaTitle,
                 pianoEnabled = pianoEnabled,
                 onTogglePiano = onTogglePiano,
+                onSelectLanguage = onSelectLanguage,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -198,13 +210,13 @@ private fun QuizLauncherSetupView(
         item {
             LabGlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "تنظیمات شروع آزمون فصل ۱ زیست دهم",
+                    text = strings.quizSetupHeader,
                     style = MaterialTheme.typography.titleMedium,
                     color = BioCyan
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "انتخاب گفتار:",
+                    text = strings.selectLessonLabel,
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -213,7 +225,7 @@ private fun QuizLauncherSetupView(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf(0 to "هر دو گفتار", 1 to "گفتار ۱", 2 to "گفتار ۲").forEach { (id, label) ->
+                    listOf(0 to strings.lessonBothShort, 1 to strings.lesson1Short, 2 to strings.lesson2Short).forEach { (id, label) ->
                         FilterChip(
                             selected = selectedLesson == id,
                             onClick = { selectedLesson = id },
@@ -228,7 +240,7 @@ private fun QuizLauncherSetupView(
                 }
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
-                    text = "انتخاب سبک بازی:",
+                    text = strings.selectGameStyleLabel,
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -247,13 +259,13 @@ private fun QuizLauncherSetupView(
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(
-                                    text = mode.titleFa,
+                                    text = strings.modeTitle(mode),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = if (active) BioCyan else MaterialTheme.colorScheme.onBackground
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = mode.subtitleFa,
+                                    text = strings.modeSubtitle(mode),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -276,7 +288,7 @@ private fun QuizLauncherSetupView(
                     Icon(imageVector = Icons.Rounded.PlayArrow, contentDescription = null)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "ورود به میدان رقابت",
+                        text = strings.enterArenaButton,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -302,8 +314,17 @@ private fun ActiveQuestionView(
     onResetCamera: () -> Unit
 ) {
     var show3DViewer by rememberSaveable(question.id) { mutableStateOf(true) }
-    val options = listOf(question.optionA, question.optionB, question.optionC, question.optionD)
-    val optionLabels = listOf("۱", "۲", "۳", "۴")
+    val strings = LocalAppStrings.current
+    val language = LocalAppLanguage.current
+    val localizedQuestion = question.localized(language)
+    val modelMeta = BioModelType.fromId(localizedQuestion.modelType).localizedMeta(language)
+    val options = listOf(
+        localizedQuestion.optionA,
+        localizedQuestion.optionB,
+        localizedQuestion.optionC,
+        localizedQuestion.optionD
+    )
+    val optionLabels = strings.optionLabels
 
     LazyColumn(
         modifier = Modifier
@@ -328,7 +349,7 @@ private fun ActiveQuestionView(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Close,
-                            contentDescription = "خروج از آزمون",
+                            contentDescription = strings.exitQuizDesc,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -340,14 +361,14 @@ private fun ActiveQuestionView(
                         if (state.mode == QuizMode.TIMED_KONKUR) {
                             val urgent = state.remainingSeconds <= 15
                             BadgeChip(
-                                text = "⏱ ${state.remainingSeconds} ثانیه",
+                                text = "⏱ ${state.remainingSeconds} ${strings.secondsUnit}",
                                 textColor = if (urgent) CoralTrap else BioCyan,
                                 containerColor = if (urgent) CoralContainer else BioCyanContainer
                             )
                         }
                         if (state.currentStreak > 0) {
                             BadgeChip(
-                                text = "🔥 ${state.currentStreak} پی‌درپی",
+                                text = "🔥 ${state.currentStreak} ${strings.streakSuffix}",
                                 textColor = AtpGold,
                                 containerColor = AtpGold.copy(alpha = 0.16f)
                             )
@@ -366,9 +387,9 @@ private fun ActiveQuestionView(
                             .testTag("quiz_bookmark_button")
                     ) {
                         Icon(
-                            imageVector = if (question.isBookmarked) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
-                            contentDescription = "نشان‌گذاری سوال",
-                            tint = if (question.isBookmarked) AtpGold else MaterialTheme.colorScheme.onSurfaceVariant
+                            imageVector = if (localizedQuestion.isBookmarked) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
+                            contentDescription = strings.bookmarkDesc,
+                            tint = if (localizedQuestion.isBookmarked) AtpGold else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -410,7 +431,7 @@ private fun ActiveQuestionView(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "شکل سه‌بعدی مرتبط: ${BioModelType.fromId(question.modelType).titleFa}",
+                                text = "${strings.related3dLabel} ${modelMeta.title}",
                                 style = MaterialTheme.typography.labelLarge,
                                 color = BioCyan
                             )
@@ -425,7 +446,7 @@ private fun ActiveQuestionView(
 
                 AnimatedVisibility(visible = show3DViewer) {
                     Bio3DInspectorCard(
-                        modelType = BioModelType.fromId(question.modelType),
+                        modelType = BioModelType.fromId(localizedQuestion.modelType),
                         xrayLevel = labState.xrayLevel,
                         highlightedPartId = labState.highlightedPartId,
                         autoRotate = labState.autoRotate,
@@ -436,9 +457,9 @@ private fun ActiveQuestionView(
                         onToggleAutoRotate = onToggleAutoRotate,
                         onZoomChange = onZoomChange,
                         onResetCamera = onResetCamera,
-                        remoteImageUrl = question.remoteImageUrl,
+                        remoteImageUrl = localizedQuestion.remoteImageUrl,
                         viewportHeight = 225.dp,
-                        show2DNoteIfPresent = question.figure2dNote
+                        show2DNoteIfPresent = localizedQuestion.figure2dNote
                     )
                 }
             }
@@ -452,64 +473,46 @@ private fun ActiveQuestionView(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    BadgeChip(text = "فصل ۱ • گفتار ${question.lesson}")
-                    DifficultyBadge(question.difficulty)
+                    BadgeChip(text = "${strings.chapterLessonPrefix} ${localizedQuestion.lesson}")
+                    DifficultyBadge(localizedQuestion.difficulty)
                     BadgeChip(
-                        text = question.questionType,
+                        text = strings.localizeQuestionType(localizedQuestion.questionType),
                         textColor = ChloroplastEmerald,
                         containerColor = EmeraldContainer
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = question.prompt,
+                    text = localizedQuestion.prompt,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
 
-        // 4 Konkur Answer Options
+        // 4 Konkur Answer Options with Bioluminescent Glowing Borders
         item {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 options.forEachIndexed { idx, optionText ->
                     val isSelected = state.selectedOptionIndex == idx
-                    val isCorrect = idx == question.correctIndex
+                    val isCorrect = idx == localizedQuestion.correctIndex
                     val submitted = state.isAnswerSubmitted
 
-                    val borderColor: Color
-                    val bgColor: Color
-                    val labelColor: Color
-
-                    when {
-                        submitted && isCorrect -> {
-                            borderColor = ChloroplastEmerald
-                            bgColor = EmeraldContainer.copy(alpha = 0.72f)
-                            labelColor = ChloroplastEmerald
-                        }
-                        submitted && isSelected && !isCorrect -> {
-                            borderColor = CoralTrap
-                            bgColor = CoralContainer.copy(alpha = 0.72f)
-                            labelColor = CoralTrap
-                        }
-                        isSelected -> {
-                            borderColor = BioCyan
-                            bgColor = BioCyanContainer.copy(alpha = 0.72f)
-                            labelColor = BioCyan
-                        }
-                        else -> {
-                            borderColor = LabBorder
-                            bgColor = LabSurface
-                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    }
+                    val (borderBrush, bgColor, labelColor) = rememberBioluminescentOptionStyle(
+                        submitted = submitted,
+                        isSelected = isSelected,
+                        isCorrect = isCorrect
+                    )
 
                     Surface(
                         onClick = { onSelectOption(idx) },
                         enabled = !submitted,
                         shape = MaterialTheme.shapes.medium,
                         color = bgColor,
-                        border = BorderStroke(1.5.dp, borderColor),
+                        border = BorderStroke(
+                            width = if (submitted && (isCorrect || isSelected)) 2.dp else 1.5.dp,
+                            brush = borderBrush
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("option_card_$idx")
@@ -541,13 +544,22 @@ private fun ActiveQuestionView(
                                 color = MaterialTheme.colorScheme.onBackground,
                                 modifier = Modifier.weight(1f)
                             )
+                            if (submitted && isCorrect) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Rounded.CheckCircle,
+                                    contentDescription = null,
+                                    tint = ChloroplastEmerald,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Submit or Next + Detailed Konkur Explanation
+        // Submit or Bioluminescent Feedback Card + Next Button
         item {
             if (!state.isAnswerSubmitted) {
                 Button(
@@ -563,7 +575,7 @@ private fun ActiveQuestionView(
                         .testTag("submit_answer_button")
                 ) {
                     Text(
-                        text = "ثبت پاسخ و مشاهده تحلیل کنکوری",
+                        text = strings.submitAnswerButton,
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -574,41 +586,19 @@ private fun ActiveQuestionView(
                 enter = fadeIn(spring(stiffness = Spring.StiffnessMediumLow)) +
                     slideInVertically(spring(stiffness = Spring.StiffnessMediumLow)) { it / 4 }
             ) {
-                val answeredCorrectly = state.selectedOptionIndex == question.correctIndex
+                val feedbackStatus = when {
+                    state.selectedOptionIndex == null -> AnswerFeedbackStatus.TIMED_OUT
+                    state.selectedOptionIndex == localizedQuestion.correctIndex -> AnswerFeedbackStatus.CORRECT
+                    else -> AnswerFeedbackStatus.INCORRECT
+                }
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    LabGlassCard(
-                        borderColor = if (answeredCorrectly) ChloroplastEmerald else CoralTrap,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Rounded.CheckCircle,
-                                contentDescription = null,
-                                tint = if (answeredCorrectly) ChloroplastEmerald else CoralTrap,
-                                modifier = Modifier.size(22.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = when {
-                                    state.selectedOptionIndex == null -> "زمان تمام شد! پاسخ صحیح: گزینه ${optionLabels[question.correctIndex]}"
-                                    answeredCorrectly -> "آفرین! پاسخ کاملاً درست است"
-                                    else -> "دام کنکوری! پاسخ صحیح: گزینه ${optionLabels[question.correctIndex]}"
-                                },
-                                style = MaterialTheme.typography.titleSmall,
-                                color = if (answeredCorrectly) ChloroplastEmerald else CoralTrap
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = question.explanation,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        question.figure2dNote?.let { note ->
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Figure2DExplanationBox(note = note)
-                        }
-                    }
+                    BioluminescentAnswerFeedbackCard(
+                        status = feedbackStatus,
+                        correctOptionLabel = optionLabels[localizedQuestion.correctIndex],
+                        explanation = localizedQuestion.explanation,
+                        figure2dNote = localizedQuestion.figure2dNote,
+                        currentStreak = state.currentStreak
+                    )
 
                     Button(
                         onClick = onNextQuestion,
@@ -623,9 +613,9 @@ private fun ActiveQuestionView(
                     ) {
                         Text(
                             text = if (state.currentIndex + 1 >= state.questions.size) {
-                                "پایان آزمون و مشاهده کارنامه"
+                                strings.finishQuizButton
                             } else {
-                                "سوال بعدی"
+                                strings.nextQuestionButton
                             },
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -645,6 +635,7 @@ private fun QuizSummaryView(
     onOpenRecords: () -> Unit,
     onBackToSetup: () -> Unit
 ) {
+    val strings = LocalAppStrings.current
     val total = state.questions.size.coerceAtLeast(1)
     val netPercent = (((state.correctCount * 3f - state.wrongCount) / (total * 3f)) * 100f)
         .coerceIn(-33.3f, 100f)
@@ -663,13 +654,13 @@ private fun QuizSummaryView(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "کارنامه نهایی ${state.mode.titleFa}",
+                    text = "${strings.summaryTitlePrefix} ${strings.modeTitle(state.mode)}",
                     style = MaterialTheme.typography.headlineSmall,
                     color = BioCyan
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "درصد کنکوری (با احتساب نمره منفی): $netPercent٪",
+                    text = "${strings.summaryNetPercentPrefix} $netPercent${strings.percentSymbol}",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = if (netPercent >= 50) ChloroplastEmerald else AtpGold
@@ -679,10 +670,10 @@ private fun QuizSummaryView(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    SummaryMetric("درست", "${state.correctCount}", ChloroplastEmerald)
-                    SummaryMetric("غلط", "${state.wrongCount}", CoralTrap)
-                    SummaryMetric("نزده", "${state.unansweredCount}", MaterialTheme.colorScheme.onSurfaceVariant)
-                    SummaryMetric("امتیاز", "${state.scorePoints}", AtpGold)
+                    SummaryMetric(strings.metricCorrect, "${state.correctCount}", ChloroplastEmerald)
+                    SummaryMetric(strings.metricWrong, "${state.wrongCount}", CoralTrap)
+                    SummaryMetric(strings.metricSkipped, "${state.unansweredCount}", MaterialTheme.colorScheme.onSurfaceVariant)
+                    SummaryMetric(strings.metricScore, "${state.scorePoints}", AtpGold)
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -694,7 +685,7 @@ private fun QuizSummaryView(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "بیشترین زنجیره پاسخ درست: ${state.bestStreak}",
+                        text = "${strings.bestStreakLabel} ${state.bestStreak}",
                         style = MaterialTheme.typography.bodySmall,
                         color = AtpGold
                     )
@@ -707,7 +698,7 @@ private fun QuizSummaryView(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "زمان کل: ${state.totalElapsedSeconds} ثانیه",
+                        text = "${strings.totalTimeLabel} ${state.totalElapsedSeconds} ${strings.secondsUnit}",
                         style = MaterialTheme.typography.bodySmall,
                         color = BioCyan
                     )
@@ -730,7 +721,7 @@ private fun QuizSummaryView(
                 ) {
                     Icon(imageVector = Icons.Rounded.Replay, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("شروع مجدد این آزمون")
+                    Text(strings.playAgainButton)
                 }
 
                 OutlinedButton(
@@ -742,14 +733,14 @@ private fun QuizSummaryView(
                         .height(48.dp)
                         .testTag("summary_open_records")
                 ) {
-                    Text("مشاهده کارنامه و مرور خطاها")
+                    Text(strings.viewRecordsButton)
                 }
 
                 TextButton(
                     onClick = onBackToSetup,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
-                    Text("بازگشت به انتخاب حالت آزمون")
+                    Text(strings.backToModesButton)
                 }
             }
         }

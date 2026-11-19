@@ -19,12 +19,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -44,15 +47,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.example.R
 import com.example.data.local.UserSettings
 import com.example.ui.components.BadgeChip
 import com.example.ui.components.LabGlassCard
 import com.example.ui.components.LabTopStatusBar
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.LocalAppLanguage
+import com.example.ui.i18n.LocalAppStrings
 import com.example.ui.theme.AtpGold
 import com.example.ui.theme.BioCyan
+import com.example.ui.theme.BioCyanContainer
 import com.example.ui.theme.ChloroplastEmerald
 import com.example.ui.theme.CoralTrap
 import com.example.ui.theme.LabSurfaceElevated
@@ -70,6 +75,7 @@ fun SettingsScreen(
     onTogglePiano: (Boolean) -> Unit,
     onToggleSfx: (Boolean) -> Unit,
     onVolumeChange: (Float) -> Unit,
+    onSelectLanguage: (AppLanguage) -> Unit,
     onCheckUpdate: (String) -> Unit,
     onDismissSyncMessage: () -> Unit,
     onClearProgress: () -> Unit,
@@ -80,6 +86,8 @@ fun SettingsScreen(
     }
     var showSchemaHint by rememberSaveable { mutableStateOf(false) }
     var showResetConfirm by rememberSaveable { mutableStateOf(false) }
+    val strings = LocalAppStrings.current
+    val currentLanguage = LocalAppLanguage.current
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -94,11 +102,66 @@ fun SettingsScreen(
         ) {
             item {
                 LabTopStatusBar(
-                    title = "تنظیمات و بروزرسانی",
+                    title = strings.settingsScreenTitle,
                     pianoEnabled = settings.pianoEnabled,
                     onTogglePiano = { onTogglePiano(!settings.pianoEnabled) },
+                    onSelectLanguage = onSelectLanguage,
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+
+            // Tri-Lingual Language Switcher Card
+            item {
+                LabGlassCard(
+                    borderColor = BioCyan.copy(alpha = 0.45f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Rounded.Language,
+                            contentDescription = null,
+                            tint = BioCyan,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = strings.languageCardTitle,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = BioCyan
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = strings.languageCardSubtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AppLanguage.entries.forEach { lang ->
+                            FilterChip(
+                                selected = currentLanguage == lang,
+                                onClick = { onSelectLanguage(lang) },
+                                label = {
+                                    Text(
+                                        text = "${lang.nativeName} (${lang.shortCode})",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = BioCyanContainer,
+                                    selectedLabelColor = BioCyan
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("settings_lang_${lang.code}")
+                            )
+                        }
+                    }
+                }
             }
 
             // Relaxing Piano Audio Controls
@@ -113,7 +176,7 @@ fun SettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "تنظیمات موسیقی آرامش‌بخش پیانو (آفلاین)",
+                            text = strings.pianoCardTitle,
                             style = MaterialTheme.typography.titleMedium,
                             color = BioCyan
                         )
@@ -127,12 +190,12 @@ fun SettingsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "نوای پیانوی پس‌زمینه",
+                                text = strings.pianoToggleTitle,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                             Text(
-                                text = "تولید زنده و محلی آکوردهای آرام‌بخش پیانو بدون نیاز به اینترنت",
+                                text = strings.pianoToggleSubtitle,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -152,7 +215,7 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "صدای ملایم پاسخ درست و غلط",
+                            text = strings.sfxToggleTitle,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -165,7 +228,7 @@ fun SettingsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "میزان صدا: ${(settings.audioVolume * 100).toInt()}٪",
+                        text = "${strings.volumeLabelPrefix} ${(settings.audioVolume * 100).toInt()}${strings.percentSymbol}",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -199,20 +262,20 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "بروزرسانی اختیاری بسته سوالات",
+                                text = strings.updateCardTitle,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = ChloroplastEmerald
                             )
                         }
                         BadgeChip(
-                            text = "نسخه ${settings.packVersion}",
+                            text = "${strings.versionPrefix} ${settings.packVersion}",
                             textColor = AtpGold,
                             containerColor = AtpGold.copy(alpha = 0.16f)
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "تمام امکانات و $totalLocalQuestions سوال فعلی به صورت کاملاً محلی روی گوشی اجرا می‌شوند. فقط در صورت نیاز و اتصال به اینترنت می‌توانید از نشانی JSON دلخواه سوالات جدید دریافت کنید.",
+                        text = "${strings.updateCardBody} ($totalLocalQuestions ${strings.statQuestionsUnit})",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -224,7 +287,7 @@ fun SettingsScreen(
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "آخرین بروزرسانی موفق: $fmt",
+                            text = "${strings.lastSyncPrefix} $fmt",
                             style = MaterialTheme.typography.labelSmall,
                             color = BioCyan
                         )
@@ -237,7 +300,7 @@ fun SettingsScreen(
                             urlInput = it
                             onDismissSyncMessage()
                         },
-                        label = { Text("نشانی لینک JSON بسته سوالات (HTTPS)") },
+                        label = { Text(strings.jsonUrlFieldLabel) },
                         singleLine = true,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -264,9 +327,9 @@ fun SettingsScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("در حال بررسی و دریافت...")
+                            Text(strings.checkingUpdateProgress)
                         } else {
-                            Text(stringResource(R.string.update_button_label))
+                            Text(strings.checkUpdateButton)
                         }
                     }
 
@@ -312,7 +375,7 @@ fun SettingsScreen(
                         onClick = { showSchemaHint = !showSchemaHint },
                         modifier = Modifier.align(Alignment.End)
                     ) {
-                        Text(if (showSchemaHint) "بستن راهنمای فرمت JSON" else "نمایش نمونه ساختار JSON بسته سوالات")
+                        Text(if (showSchemaHint) strings.hideJsonSample else strings.showJsonSample)
                     }
                     AnimatedVisibility(visible = showSchemaHint) {
                         Surface(
@@ -321,7 +384,7 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = "{\n  \"version\": 2,\n  \"packTitle\": \"بسته تکمیلی زیست دهم\",\n  \"questions\": [\n    {\n      \"id\": \"ch1_l1_extra1\",\n      \"lesson\": 1,\n      \"difficulty\": \"دام کنکوری\",\n      \"questionType\": \"مفهومی\",\n      \"prompt\": \"...\",\n      \"optionA\": \"...\", \"optionB\": \"...\",\n      \"optionC\": \"...\", \"optionD\": \"...\",\n      \"correctIndex\": 0,\n      \"explanation\": \"...\",\n      \"modelType\": \"EUKARYOTIC_CELL\",\n      \"highlightedPartId\": \"nucleus\",\n      \"remoteImageUrl\": null,\n      \"figure2dNote\": null\n    }\n  ]\n}",
+                                text = "{\n  \"version\": 2,\n  \"packTitle\": \"Bio 10 Pack\",\n  \"questions\": [\n    {\n      \"id\": \"ch1_l1_extra1\",\n      \"lesson\": 1,\n      \"difficulty\": \"دام کنکوری\",\n      \"questionType\": \"مفهومی\",\n      \"prompt\": \"...\",\n      \"optionA\": \"...\", \"optionB\": \"...\",\n      \"optionC\": \"...\", \"optionD\": \"...\",\n      \"correctIndex\": 0,\n      \"explanation\": \"...\",\n      \"modelType\": \"EUKARYOTIC_CELL\",\n      \"highlightedPartId\": \"nucleus\",\n      \"remoteImageUrl\": null,\n      \"figure2dNote\": null\n    }\n  ]\n}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(10.dp)
@@ -338,13 +401,13 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "مدیریت سوابق محلی",
+                        text = strings.resetStatsTitle,
                         style = MaterialTheme.typography.titleSmall,
                         color = CoralTrap
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "پاک‌سازی تاریخچه آزمون‌ها و آمار پاسخ‌های ثبت‌شده (بانک سوالات آفلاین حفظ می‌شود).",
+                        text = strings.resetStatsBody,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -364,7 +427,7 @@ fun SettingsScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("پاک‌سازی کارنامه و آمار پاسخ‌ها")
+                        Text(strings.resetStatsButton)
                     }
                 }
             }
@@ -376,8 +439,8 @@ fun SettingsScreen(
     if (showResetConfirm) {
         AlertDialog(
             onDismissRequest = { showResetConfirm = false },
-            title = { Text("پاک‌سازی سوابق") },
-            text = { Text("آیا مطمئن هستید که می‌خواهید تاریخچه آزمون‌ها و درصدهای ثبت‌شده پاک شوند؟") },
+            title = { Text(strings.resetDialogTitle) },
+            text = { Text(strings.resetDialogBody) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -385,12 +448,12 @@ fun SettingsScreen(
                         showResetConfirm = false
                     }
                 ) {
-                    Text("بله، پاک شود", color = CoralTrap)
+                    Text(strings.resetConfirm, color = CoralTrap)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showResetConfirm = false }) {
-                    Text("انصراف")
+                    Text(strings.resetCancel)
                 }
             }
         )

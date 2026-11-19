@@ -60,6 +60,10 @@ import com.example.bio3d.BioModelType
 import com.example.ui.components.BadgeChip
 import com.example.ui.components.LabGlassCard
 import com.example.ui.components.LabTopStatusBar
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.LocalAppLanguage
+import com.example.ui.i18n.LocalAppStrings
+import com.example.ui.i18n.localizedMeta
 import com.example.ui.theme.AtpGold
 import com.example.ui.theme.BioCyan
 import com.example.ui.theme.BioCyanContainer
@@ -78,11 +82,13 @@ fun LabHubScreen(
     stats: LabOverviewStats,
     pianoEnabled: Boolean,
     onTogglePiano: () -> Unit,
+    onSelectLanguage: (AppLanguage) -> Unit,
     onStartQuiz: (QuizMode, Int) -> Unit,
     onOpenModel3D: (BioModelType) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedLesson by rememberSaveable { mutableIntStateOf(0) }
+    val strings = LocalAppStrings.current
 
     val heroBitmap by produceState<ImageBitmap?>(initialValue = null) {
         value = Bio3DPreviewRenderer.getPreviewBitmap(BioModelType.EUKARYOTIC_CELL, 640, 320)
@@ -101,9 +107,10 @@ fun LabHubScreen(
         ) {
             item {
                 LabTopStatusBar(
-                    title = "زیست‌نگار ۳بعدی",
+                    title = strings.appTitle,
                     pianoEnabled = pianoEnabled,
                     onTogglePiano = onTogglePiano,
+                    onSelectLanguage = onSelectLanguage,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -121,7 +128,7 @@ fun LabHubScreen(
                         heroBitmap?.let { bmp ->
                             Image(
                                 bitmap = bmp,
-                                contentDescription = "نمای سه‌بعدی آزمایشگاه زیست دهم",
+                                contentDescription = strings.heroImageDesc,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.matchParentSize()
                             )
@@ -144,19 +151,19 @@ fun LabHubScreen(
                                 .padding(18.dp)
                         ) {
                             BadgeChip(
-                                text = "فصل ۱ زیست دهم • گفتار ۱ و ۲ (سطح کنکور)",
+                                text = strings.heroBadge,
                                 textColor = AtpGold,
                                 containerColor = ObsidianBg.copy(alpha = 0.78f)
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = "آزمایشگاه سه‌بعدی و نبرد تست‌های سخت کنکور",
+                                text = strings.heroTitle,
                                 style = MaterialTheme.typography.headlineSmall,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "بررسی ساختارهای درونی یاخته، غشا و اندامک‌ها از همه زوایا با قابلیت شفاف‌سازی X-Ray و نوای آرامش‌بخش پیانو.",
+                                text = strings.heroSubtitle,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -183,7 +190,7 @@ fun LabHubScreen(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "شروع چالش کنکور",
+                                        text = strings.heroStartQuiz,
                                         style = MaterialTheme.typography.labelLarge
                                     )
                                 }
@@ -204,7 +211,7 @@ fun LabHubScreen(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "آزمایشگاه ۳بعدی",
+                                        text = strings.heroOpen3d,
                                         style = MaterialTheme.typography.labelLarge
                                     )
                                 }
@@ -221,19 +228,19 @@ fun LabHubScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     StatMiniCard(
-                        label = "بانک تست آفلاین",
-                        value = "${stats.totalQuestions} سوال",
+                        label = strings.statOfflineBank,
+                        value = "${stats.totalQuestions} ${strings.statQuestionsUnit}",
                         accent = BioCyan,
                         modifier = Modifier.weight(1f)
                     )
                     StatMiniCard(
-                        label = "بهترین درصد کنکور",
-                        value = "${stats.bestKonkurPercent.roundToInt()}٪",
+                        label = strings.statBestPercent,
+                        value = "${stats.bestKonkurPercent.roundToInt()}${strings.percentSymbol}",
                         accent = AtpGold,
                         modifier = Modifier.weight(1f)
                     )
                     StatMiniCard(
-                        label = "تسلط کامل",
+                        label = strings.statMastered,
                         value = "${stats.masteredCount}/${stats.totalQuestions}",
                         accent = ChloroplastEmerald,
                         modifier = Modifier.weight(1f)
@@ -245,15 +252,15 @@ fun LabHubScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "محدوده گفتارهای فصل ۱ (دنیای زنده):",
+                        text = strings.lessonScopeTitle,
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         val chips = listOf(
-                            0 to "هر دو گفتار (${stats.totalQuestions})",
-                            1 to "گفتار ۱: زیست‌شناسی چیست؟ (${stats.lesson1Count})",
-                            2 to "گفتار ۲: گستره حیات (${stats.lesson2Count})"
+                            0 to "${strings.lessonBoth} (${stats.totalQuestions})",
+                            1 to "${strings.lesson1Full} (${stats.lesson1Count})",
+                            2 to "${strings.lesson2Full} (${stats.lesson2Count})"
                         )
                         items(chips) { (lessonId, label) ->
                             FilterChip(
@@ -280,34 +287,34 @@ fun LabHubScreen(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = "انتخاب حالت بازی و تمرین",
+                        text = strings.gameModesTitle,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     GameModeCard(
-                        title = QuizMode.TIMED_KONKUR.titleFa,
-                        subtitle = QuizMode.TIMED_KONKUR.subtitleFa,
+                        title = strings.modeTitle(QuizMode.TIMED_KONKUR),
+                        subtitle = strings.modeSubtitle(QuizMode.TIMED_KONKUR),
                         icon = Icons.Rounded.Timer,
                         accent = BioCyan,
-                        badge = "رقابتی • رکورد",
+                        badge = strings.badgeCompetitive,
                         testTag = "mode_timed_konkur",
                         onClick = { onStartQuiz(QuizMode.TIMED_KONKUR, selectedLesson) }
                     )
                     GameModeCard(
-                        title = QuizMode.FREE_STUDY.titleFa,
-                        subtitle = QuizMode.FREE_STUDY.subtitleFa,
+                        title = strings.modeTitle(QuizMode.FREE_STUDY),
+                        subtitle = strings.modeSubtitle(QuizMode.FREE_STUDY),
                         icon = Icons.Rounded.Explore,
                         accent = ChloroplastEmerald,
-                        badge = "آموزشی • ۳بعدی",
+                        badge = strings.badgeStudy3d,
                         testTag = "mode_free_study",
                         onClick = { onStartQuiz(QuizMode.FREE_STUDY, selectedLesson) }
                     )
                     GameModeCard(
-                        title = QuizMode.REVIEW_MISTAKES.titleFa,
-                        subtitle = QuizMode.REVIEW_MISTAKES.subtitleFa,
+                        title = strings.modeTitle(QuizMode.REVIEW_MISTAKES),
+                        subtitle = strings.modeSubtitle(QuizMode.REVIEW_MISTAKES),
                         icon = Icons.Rounded.Bookmark,
                         accent = CoralTrap,
-                        badge = "${stats.mistakeCount + stats.bookmarkCount} مورد",
+                        badge = "${stats.mistakeCount + stats.bookmarkCount} ${strings.itemsCountUnit}",
                         testTag = "mode_review_mistakes",
                         onClick = { onStartQuiz(QuizMode.REVIEW_MISTAKES, selectedLesson) }
                     )
@@ -323,7 +330,7 @@ fun LabHubScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "مدل‌های سه‌بعدی تشریحی (بررسی ۳۶۰°)",
+                            text = strings.models3dCarouselTitle,
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -451,6 +458,8 @@ private fun Model3DQuickCard(
     model: BioModelType,
     onClick: () -> Unit
 ) {
+    val language = LocalAppLanguage.current
+    val meta = model.localizedMeta(language)
     val thumb by produceState<ImageBitmap?>(initialValue = null, model) {
         value = Bio3DPreviewRenderer.getPreviewBitmap(model, 280, 180)
     }
@@ -475,13 +484,13 @@ private fun Model3DQuickCard(
                 thumb?.let {
                     Image(
                         bitmap = it,
-                        contentDescription = model.titleFa,
+                        contentDescription = meta.title,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
                 BadgeChip(
-                    text = model.lessonTag,
+                    text = meta.lessonTag,
                     textColor = BioCyan,
                     containerColor = ObsidianBg.copy(alpha = 0.8f),
                     modifier = Modifier
@@ -491,14 +500,14 @@ private fun Model3DQuickCard(
             }
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = model.titleFa,
+                    text = meta.title,
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = model.subtitleFa,
+                    text = meta.subtitle,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2

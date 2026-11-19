@@ -13,6 +13,9 @@ import com.example.data.local.AppDatabase
 import com.example.data.local.SettingsDataStore
 import com.example.data.remote.QuestionUpdateService
 import com.example.data.repository.BiologyRepository
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.ui.i18n.AppLanguage
 import com.example.ui.navigation.ZistNegarAppRoot
 import com.example.ui.theme.ZistNegarTheme
 import com.example.ui.viewmodel.BiologyViewModel
@@ -50,7 +53,9 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            ZistNegarTheme {
+            val settings by viewModel.settings.collectAsStateWithLifecycle()
+            val appLanguage = AppLanguage.fromCode(settings.languageCode)
+            ZistNegarTheme(language = appLanguage) {
                 ZistNegarAppRoot(viewModel = viewModel)
             }
         }

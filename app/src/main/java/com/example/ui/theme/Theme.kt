@@ -7,8 +7,11 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.AppStrings
+import com.example.ui.i18n.LocalAppLanguage
+import com.example.ui.i18n.LocalAppStrings
 
 private val BioluminescentLabScheme = darkColorScheme(
     primary = BioCyan,
@@ -46,9 +49,15 @@ private val LabShapes = Shapes(
 
 @Composable
 fun ZistNegarTheme(
+    language: AppLanguage = AppLanguage.FA,
     content: @Composable () -> Unit
 ) {
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+    val strings = AppStrings.forLanguage(language)
+    CompositionLocalProvider(
+        LocalLayoutDirection provides language.layoutDirection,
+        LocalAppLanguage provides language,
+        LocalAppStrings provides strings
+    ) {
         MaterialTheme(
             colorScheme = BioluminescentLabScheme,
             typography = ZistTypography,

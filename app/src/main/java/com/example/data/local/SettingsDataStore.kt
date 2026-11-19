@@ -19,7 +19,8 @@ data class UserSettings(
     val audioVolume: Float = 0.55f,
     val updateJsonUrl: String = "https://example.com/zist10-ch1-pack.json",
     val packVersion: Int = 1,
-    val lastSyncTimestamp: Long = 0L
+    val lastSyncTimestamp: Long = 0L,
+    val languageCode: String = "fa"
 )
 
 class SettingsDataStore(private val context: Context) {
@@ -31,6 +32,7 @@ class SettingsDataStore(private val context: Context) {
         val UPDATE_JSON_URL = stringPreferencesKey("update_json_url")
         val PACK_VERSION = intPreferencesKey("pack_version")
         val LAST_SYNC_TS = longPreferencesKey("last_sync_ts")
+        val LANGUAGE_CODE = stringPreferencesKey("language_code")
     }
 
     val settingsFlow: Flow<UserSettings> = context.settingsDataStore.data.map { prefs ->
@@ -41,7 +43,8 @@ class SettingsDataStore(private val context: Context) {
             updateJsonUrl = prefs[Keys.UPDATE_JSON_URL]
                 ?: "https://example.com/zist10-ch1-pack.json",
             packVersion = prefs[Keys.PACK_VERSION] ?: 1,
-            lastSyncTimestamp = prefs[Keys.LAST_SYNC_TS] ?: 0L
+            lastSyncTimestamp = prefs[Keys.LAST_SYNC_TS] ?: 0L,
+            languageCode = prefs[Keys.LANGUAGE_CODE] ?: "fa"
         )
     }
 
@@ -66,5 +69,9 @@ class SettingsDataStore(private val context: Context) {
             it[Keys.PACK_VERSION] = version
             it[Keys.LAST_SYNC_TS] = timestamp
         }
+    }
+
+    suspend fun setLanguageCode(code: String) {
+        context.settingsDataStore.edit { it[Keys.LANGUAGE_CODE] = code }
     }
 }

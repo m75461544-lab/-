@@ -4,6 +4,10 @@ import com.example.bio3d.Bio3DMeshBuilder
 import com.example.bio3d.BioModelCatalog
 import com.example.bio3d.BioModelType
 import com.example.data.local.InitialQuestionBank
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.localized
+import com.example.ui.i18n.localizedMeta
+import com.example.ui.i18n.localizedPartsFor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -64,6 +68,34 @@ class BiologyAppUnitTest {
                         "Index $intIdx out of bounds [0, $vertexCount) in ${part.partId}",
                         intIdx in 0 until vertexCount
                     )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun allQuestionsAndModels_haveCompletePersianArabicAndEnglishTranslations() {
+        val langs = AppLanguage.entries
+        for (q in InitialQuestionBank.questions) {
+            for (lang in langs) {
+                val localizedQ = q.localized(lang)
+                assertTrue("Blank prompt for ${q.id} in $lang", localizedQ.prompt.isNotBlank())
+                assertTrue("Blank optionA for ${q.id} in $lang", localizedQ.optionA.isNotBlank())
+                assertTrue("Blank optionB for ${q.id} in $lang", localizedQ.optionB.isNotBlank())
+                assertTrue("Blank optionC for ${q.id} in $lang", localizedQ.optionC.isNotBlank())
+                assertTrue("Blank optionD for ${q.id} in $lang", localizedQ.optionD.isNotBlank())
+                assertTrue("Blank explanation for ${q.id} in $lang", localizedQ.explanation.isNotBlank())
+            }
+        }
+        for (model in BioModelType.entries) {
+            for (lang in langs) {
+                val meta = model.localizedMeta(lang)
+                assertTrue("Blank title for ${model.id} in $lang", meta.title.isNotBlank())
+                assertTrue("Blank summary for ${model.id} in $lang", meta.summary.isNotBlank())
+                val parts = BioModelCatalog.localizedPartsFor(model, lang)
+                assertTrue("Empty parts for ${model.id} in $lang", parts.isNotEmpty())
+                for (part in parts) {
+                    assertTrue("Blank part name for ${part.id} in $lang", part.nameFa.isNotBlank())
                 }
             }
         }

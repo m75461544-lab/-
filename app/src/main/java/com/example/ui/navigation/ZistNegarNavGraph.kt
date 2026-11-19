@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -43,8 +42,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.R
 import com.example.ui.components.LabBackground
+import com.example.ui.i18n.AppStrings
+import com.example.ui.i18n.LocalAppStrings
 import com.example.ui.screens.BioLab3DScreen
 import com.example.ui.screens.LabHubScreen
 import com.example.ui.screens.QuizArenaScreen
@@ -64,18 +64,18 @@ const val ROUTE_SETTINGS = "settings"
 
 private data class NavDestination(
     val route: String,
-    val labelRes: Int,
+    val labelSelector: (AppStrings) -> String,
     val activeIcon: ImageVector,
     val inactiveIcon: ImageVector,
     val testTag: String
 )
 
 private val TopDestinations = listOf(
-    NavDestination(ROUTE_LAB_HUB, R.string.nav_home, Icons.Rounded.Home, Icons.Outlined.Home, "nav_lab_hub"),
-    NavDestination(ROUTE_LAB_3D, R.string.nav_lab3d, Icons.Rounded.Science, Icons.Outlined.Science, "nav_lab_3d"),
-    NavDestination(ROUTE_QUIZ_ARENA, R.string.nav_quiz, Icons.Rounded.Quiz, Icons.Outlined.Quiz, "nav_quiz_arena"),
-    NavDestination(ROUTE_RECORDS, R.string.nav_records, Icons.Rounded.Assessment, Icons.Outlined.Assessment, "nav_records"),
-    NavDestination(ROUTE_SETTINGS, R.string.nav_settings, Icons.Rounded.Settings, Icons.Outlined.Settings, "nav_settings")
+    NavDestination(ROUTE_LAB_HUB, { it.navHome }, Icons.Rounded.Home, Icons.Outlined.Home, "nav_lab_hub"),
+    NavDestination(ROUTE_LAB_3D, { it.navLab3d }, Icons.Rounded.Science, Icons.Outlined.Science, "nav_lab_3d"),
+    NavDestination(ROUTE_QUIZ_ARENA, { it.navQuiz }, Icons.Rounded.Quiz, Icons.Outlined.Quiz, "nav_quiz_arena"),
+    NavDestination(ROUTE_RECORDS, { it.navRecords }, Icons.Rounded.Assessment, Icons.Outlined.Assessment, "nav_records"),
+    NavDestination(ROUTE_SETTINGS, { it.navSettings }, Icons.Rounded.Settings, Icons.Outlined.Settings, "nav_settings")
 )
 
 @Composable
@@ -91,6 +91,7 @@ fun ZistNegarAppRoot(viewModel: BiologyViewModel) {
     val quizState by viewModel.quizState.collectAsStateWithLifecycle()
     val lab3DState by viewModel.lab3DState.collectAsStateWithLifecycle()
     val syncState by viewModel.syncState.collectAsStateWithLifecycle()
+    val strings = LocalAppStrings.current
 
     fun navigateTop(route: String) {
         navController.navigate(route) {
@@ -117,18 +118,19 @@ fun ZistNegarAppRoot(viewModel: BiologyViewModel) {
                         ) {
                             TopDestinations.forEach { dest ->
                                 val selected = currentRoute == dest.route
+                                val labelText = dest.labelSelector(strings)
                                 NavigationBarItem(
                                     selected = selected,
                                     onClick = { navigateTop(dest.route) },
                                     icon = {
                                         Icon(
                                             imageVector = if (selected) dest.activeIcon else dest.inactiveIcon,
-                                            contentDescription = stringResource(dest.labelRes)
+                                            contentDescription = labelText
                                         )
                                     },
                                     label = {
                                         Text(
-                                            text = stringResource(dest.labelRes),
+                                            text = labelText,
                                             style = MaterialTheme.typography.labelSmall,
                                             maxLines = 1
                                         )
@@ -158,18 +160,19 @@ fun ZistNegarAppRoot(viewModel: BiologyViewModel) {
                             Spacer(modifier = Modifier.weight(0.5f))
                             TopDestinations.forEach { dest ->
                                 val selected = currentRoute == dest.route
+                                val labelText = dest.labelSelector(strings)
                                 NavigationRailItem(
                                     selected = selected,
                                     onClick = { navigateTop(dest.route) },
                                     icon = {
                                         Icon(
                                             imageVector = if (selected) dest.activeIcon else dest.inactiveIcon,
-                                            contentDescription = stringResource(dest.labelRes)
+                                            contentDescription = labelText
                                         )
                                     },
                                     label = {
                                         Text(
-                                            text = stringResource(dest.labelRes),
+                                            text = labelText,
                                             style = MaterialTheme.typography.labelSmall
                                         )
                                     },
@@ -197,6 +200,7 @@ fun ZistNegarAppRoot(viewModel: BiologyViewModel) {
                                 stats = stats,
                                 pianoEnabled = settings.pianoEnabled,
                                 onTogglePiano = viewModel::togglePianoMusic,
+                                onSelectLanguage = viewModel::setLanguage,
                                 onStartQuiz = { mode, lesson ->
                                     viewModel.startQuiz(mode, lesson)
                                     navigateTop(ROUTE_QUIZ_ARENA)
@@ -213,6 +217,7 @@ fun ZistNegarAppRoot(viewModel: BiologyViewModel) {
                                 labState = lab3DState,
                                 pianoEnabled = settings.pianoEnabled,
                                 onTogglePiano = viewModel::togglePianoMusic,
+                                onSelectLanguage = viewModel::setLanguage,
                                 onSelectModel = { viewModel.selectModel(it) },
                                 onXrayChange = viewModel::setXrayLevel,
                                 onSelectPart = viewModel::toggleHighlightPart,
@@ -232,6 +237,7 @@ fun ZistNegarAppRoot(viewModel: BiologyViewModel) {
                                 labState = lab3DState,
                                 pianoEnabled = settings.pianoEnabled,
                                 onTogglePiano = viewModel::togglePianoMusic,
+                                onSelectLanguage = viewModel::setLanguage,
                                 onStartQuiz = viewModel::startQuiz,
                                 onSelectOption = viewModel::selectOption,
                                 onSubmitAnswer = { viewModel.submitAnswer(false) },
@@ -254,6 +260,7 @@ fun ZistNegarAppRoot(viewModel: BiologyViewModel) {
                                 questions = allQuestions,
                                 pianoEnabled = settings.pianoEnabled,
                                 onTogglePiano = viewModel::togglePianoMusic,
+                                onSelectLanguage = viewModel::setLanguage,
                                 onToggleBookmark = viewModel::toggleBookmark,
                                 onStartMistakesReview = {
                                     viewModel.startQuiz(QuizMode.REVIEW_MISTAKES, 0)
@@ -270,6 +277,7 @@ fun ZistNegarAppRoot(viewModel: BiologyViewModel) {
                                 onTogglePiano = viewModel::setPianoEnabled,
                                 onToggleSfx = viewModel::setSfxEnabled,
                                 onVolumeChange = viewModel::setAudioVolume,
+                                onSelectLanguage = viewModel::setLanguage,
                                 onCheckUpdate = viewModel::checkAndFetchUpdate,
                                 onDismissSyncMessage = viewModel::resetSyncBanner,
                                 onClearProgress = viewModel::clearAllUserProgress

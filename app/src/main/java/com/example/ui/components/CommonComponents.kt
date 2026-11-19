@@ -16,15 +16,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.MusicOff
 import androidx.compose.material.icons.rounded.OfflineBolt
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -32,10 +39,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.R
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.LocalAppLanguage
+import com.example.ui.i18n.LocalAppStrings
 import com.example.ui.theme.AtpGold
 import com.example.ui.theme.BioCyan
 import com.example.ui.theme.BioCyanContainer
@@ -125,12 +133,18 @@ fun BadgeChip(
 
 @Composable
 fun DifficultyBadge(difficulty: String, modifier: Modifier = Modifier) {
+    val strings = LocalAppStrings.current
     val (fg, bg) = when (difficulty) {
         "دام کنکوری" -> CoralTrap to CoralContainer
         "بسیار سخت" -> AtpGold to GoldContainer
         else -> NucleusViolet to Color(0xFF281C4A)
     }
-    BadgeChip(text = difficulty, textColor = fg, containerColor = bg, modifier = modifier)
+    BadgeChip(
+        text = strings.localizeDifficulty(difficulty),
+        textColor = fg,
+        containerColor = bg,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -138,8 +152,13 @@ fun LabTopStatusBar(
     title: String,
     pianoEnabled: Boolean,
     onTogglePiano: () -> Unit,
+    onSelectLanguage: ((AppLanguage) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalAppStrings.current
+    val currentLang = LocalAppLanguage.current
+    var langMenuExpanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -163,13 +182,13 @@ fun LabTopStatusBar(
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.OfflineBolt,
-                        contentDescription = stringResource(R.string.offline_badge),
+                        contentDescription = strings.offlineBadge,
                         tint = ChloroplastEmerald,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = stringResource(R.string.offline_badge),
+                        text = strings.offlineBadge,
                         style = MaterialTheme.typography.labelSmall,
                         color = ChloroplastEmerald
                     )
@@ -177,29 +196,86 @@ fun LabTopStatusBar(
             }
         }
 
-        Surface(
-            shape = RoundedCornerShape(14.dp),
-            color = if (pianoEnabled) BioCyanContainer else LabSurface,
-            border = BorderStroke(
-                1.dp,
-                if (pianoEnabled) BioCyan.copy(alpha = 0.55f) else LabBorder
-            )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = onTogglePiano,
-                modifier = Modifier
-                    .size(48.dp)
-                    .testTag("piano_toggle_button")
-            ) {
-                Icon(
-                    imageVector = if (pianoEnabled) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
-                    contentDescription = if (pianoEnabled) {
-                        stringResource(R.string.piano_playing)
-                    } else {
-                        stringResource(R.string.piano_muted)
-                    },
-                    tint = if (pianoEnabled) BioCyan else MaterialTheme.colorScheme.onSurfaceVariant
+            if (onSelectLanguage != null) {
+                Box {
+                    Surface(
+                        onClick = { langMenuExpanded = true },
+                        shape = RoundedCornerShape(14.dp),
+                        color = LabSurface,
+                        border = BorderStroke(1.dp, BioCyan.copy(alpha = 0.45f)),
+                        modifier = Modifier.testTag("top_language_button")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Language,
+                                contentDescription = strings.languageSelectHint,
+                                tint = BioCyan,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = currentLang.shortCode,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = BioCyan
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = langMenuExpanded,
+                        onDismissRequest = { langMenuExpanded = false }
+                    ) {
+                        AppLanguage.entries.forEach { lang ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = "${lang.nativeName} (${lang.shortCode})",
+                                        color = if (lang == currentLang) BioCyan else MaterialTheme.colorScheme.onBackground,
+                                        fontWeight = if (lang == currentLang) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                },
+                                onClick = {
+                                    langMenuExpanded = false
+                                    onSelectLanguage(lang)
+                                },
+                                modifier = Modifier.testTag("top_lang_option_${lang.code}")
+                            )
+                        }
+                    }
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = if (pianoEnabled) BioCyanContainer else LabSurface,
+                border = BorderStroke(
+                    1.dp,
+                    if (pianoEnabled) BioCyan.copy(alpha = 0.55f) else LabBorder
                 )
+            ) {
+                IconButton(
+                    onClick = onTogglePiano,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .testTag("piano_toggle_button")
+                ) {
+                    Icon(
+                        imageVector = if (pianoEnabled) Icons.Rounded.MusicNote else Icons.Rounded.MusicOff,
+                        contentDescription = if (pianoEnabled) {
+                            strings.pianoPlayingDesc
+                        } else {
+                            strings.pianoMutedDesc
+                        },
+                        tint = if (pianoEnabled) BioCyan else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

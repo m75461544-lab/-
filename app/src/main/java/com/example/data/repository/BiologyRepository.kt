@@ -53,6 +53,7 @@ class BiologyRepository(
     suspend fun setSfxEnabled(enabled: Boolean) = settingsStore.setSfxEnabled(enabled)
     suspend fun setAudioVolume(volume: Float) = settingsStore.setAudioVolume(volume)
     suspend fun setUpdateUrl(url: String) = settingsStore.setUpdateJsonUrl(url)
+    suspend fun setLanguageCode(code: String) = settingsStore.setLanguageCode(code)
 
     suspend fun syncFromJsonUrl(url: String): SyncOutcome {
         settingsStore.setUpdateJsonUrl(url)

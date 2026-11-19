@@ -58,18 +58,20 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
-import com.example.R
 import com.example.bio3d.Bio3DPreviewRenderer
 import com.example.bio3d.Bio3DSurfaceView
 import com.example.bio3d.BioModelCatalog
 import com.example.bio3d.BioModelType
 import com.example.bio3d.BioPartInfo
+import com.example.ui.i18n.LocalAppLanguage
+import com.example.ui.i18n.LocalAppStrings
+import com.example.ui.i18n.localizedMeta
+import com.example.ui.i18n.localizedPartsFor
 import com.example.ui.theme.AtpGold
 import com.example.ui.theme.BioCyan
 import com.example.ui.theme.BioCyanContainer
@@ -100,7 +102,10 @@ fun Bio3DInspectorCard(
     var showRendered3DIllustration by remember(modelType) { mutableStateOf(false) }
     var isFullscreen by remember { mutableStateOf(false) }
 
-    val parts = remember(modelType) { BioModelCatalog.partsFor(modelType) }
+    val strings = LocalAppStrings.current
+    val language = LocalAppLanguage.current
+    val meta = remember(modelType, language) { modelType.localizedMeta(language) }
+    val parts = remember(modelType, language) { BioModelCatalog.localizedPartsFor(modelType, language) }
     val selectedPart: BioPartInfo? = remember(parts, highlightedPartId) {
         parts.firstOrNull { it.id == highlightedPartId }
     }
@@ -121,12 +126,12 @@ fun Bio3DInspectorCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = modelType.titleFa,
+                    text = meta.title,
                     style = MaterialTheme.typography.titleMedium,
                     color = BioCyan
                 )
                 Text(
-                    text = modelType.subtitleFa,
+                    text = meta.subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -151,7 +156,7 @@ fun Bio3DInspectorCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (showRendered3DIllustration) "مدل چرخشی" else "رندر ۳بعدی",
+                        text = if (showRendered3DIllustration) strings.switchTo3dModel else strings.switchTo3dRender,
                         style = MaterialTheme.typography.labelSmall,
                         color = BioCyan
                     )
@@ -184,7 +189,7 @@ fun Bio3DInspectorCard(
                 Zoomable3DIllustrationPane(
                     remoteImageUrl = remoteImageUrl,
                     fallbackBitmap = previewBitmap,
-                    contentDescription = modelType.titleFa
+                    contentDescription = meta.title
                 )
             }
 
@@ -198,7 +203,7 @@ fun Bio3DInspectorCard(
                 border = BorderStroke(1.dp, LabBorder)
             ) {
                 Text(
-                    text = if (showRendered3DIllustration) "با دو انگشت بزرگ‌نمایی کنید" else "برای چرخش ۳۶۰° بکشید",
+                    text = if (showRendered3DIllustration) strings.hintPinchZoom else strings.hintDragRotate,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -215,33 +220,33 @@ fun Bio3DInspectorCard(
                 if (!showRendered3DIllustration) {
                     SmallGlassIconButton(
                         icon = Icons.Rounded.ZoomIn,
-                        description = "بزرگ‌نمایی",
+                        description = strings.descZoomIn,
                         testTag = "btn_3d_zoom_in",
                         onClick = { onZoomChange((zoomDistance - 0.55f).coerceIn(2.2f, 6.2f)) }
                     )
                     SmallGlassIconButton(
                         icon = Icons.Rounded.ZoomOut,
-                        description = "کوچک‌نمایی",
+                        description = strings.descZoomOut,
                         testTag = "btn_3d_zoom_out",
                         onClick = { onZoomChange((zoomDistance + 0.55f).coerceIn(2.2f, 6.2f)) }
                     )
                     SmallGlassIconButton(
                         icon = if (autoRotate) Icons.Rounded.PauseCircle else Icons.Rounded.PlayCircle,
-                        description = "توقف یا ادامه چرخش خودکار",
+                        description = strings.descAutoRotate,
                         testTag = "btn_3d_autorotate",
                         tint = if (autoRotate) BioCyan else MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = onToggleAutoRotate
                     )
                     SmallGlassIconButton(
                         icon = Icons.Rounded.CenterFocusStrong,
-                        description = "بازنشانی زاویه",
+                        description = strings.descResetAngle,
                         testTag = "btn_3d_reset",
                         onClick = onResetCamera
                     )
                 }
                 SmallGlassIconButton(
                     icon = Icons.Rounded.Fullscreen,
-                    description = "نمایش تمام‌صفحه سه‌بعدی",
+                    description = strings.descFullscreen3d,
                     testTag = "btn_3d_fullscreen",
                     tint = AtpGold,
                     onClick = { isFullscreen = true }
@@ -264,13 +269,13 @@ fun Bio3DInspectorCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = stringResource(R.string.xray_label),
+                    text = strings.xrayLabel,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = "${(xrayLevel * 100).toInt()}٪",
+                    text = "${(xrayLevel * 100).toInt()}${strings.percentSymbol}",
                     style = MaterialTheme.typography.labelMedium,
                     color = BioCyan
                 )
@@ -293,7 +298,7 @@ fun Bio3DInspectorCard(
         // Internal Parts Selector Chips
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "بررسی و برجسته‌سازی بخش‌های درونی:",
+            text = strings.internalPartsTitle,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -390,12 +395,12 @@ fun Bio3DInspectorCard(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = modelType.titleFa,
+                                text = meta.title,
                                 style = MaterialTheme.typography.titleLarge,
                                 color = BioCyan
                             )
                             Text(
-                                text = "نمای تمام‌صفحه • چرخش ۳۶۰° و شفاف‌سازی درونی",
+                                text = strings.fullscreenSubtitle,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = ChloroplastEmerald
                             )
@@ -406,7 +411,7 @@ fun Bio3DInspectorCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Close,
-                                contentDescription = "بستن نمای تمام‌صفحه",
+                                contentDescription = strings.closeFullscreenDesc,
                                 tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
@@ -437,14 +442,14 @@ fun Bio3DInspectorCard(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "شفاف‌سازی (X-Ray): ${(xrayLevel * 100).toInt()}٪",
+                                text = "${strings.xrayLabel}: ${(xrayLevel * 100).toInt()}${strings.percentSymbol}",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = BioCyan,
                                 modifier = Modifier.weight(1f)
                             )
                             SmallGlassIconButton(
                                 icon = Icons.Rounded.CenterFocusStrong,
-                                description = "بازنشانی دوربین",
+                                description = strings.resetCameraDesc,
                                 testTag = "modal_3d_reset",
                                 onClick = {
                                     onResetCamera()

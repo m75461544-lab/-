@@ -10,6 +10,8 @@ import com.example.data.local.QuizRecordEntity
 import com.example.data.local.UserSettings
 import com.example.data.repository.BiologyRepository
 import com.example.data.repository.SyncOutcome
+import com.example.ui.i18n.AppLanguage
+import com.example.ui.i18n.AppStrings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -392,16 +394,20 @@ class BiologyViewModel(
         viewModelScope.launch { repository.setUpdateUrl(url) }
     }
 
+    fun setLanguage(language: AppLanguage) {
+        viewModelScope.launch { repository.setLanguageCode(language.code) }
+    }
+
     fun checkAndFetchUpdate(url: String) {
         viewModelScope.launch {
             _syncState.value = SyncUiState.Loading
+            val lang = AppLanguage.fromCode(settings.value.languageCode)
+            val strings = AppStrings.forLanguage(lang)
             _syncState.value = when (val outcome = repository.syncFromJsonUrl(url)) {
-                SyncOutcome.Offline -> SyncUiState.Offline(
-                    "اتصال اینترنت برقرار نیست. بازی مثل همیشه به صورت کاملاً محلی و آفلاین در دسترس است."
-                )
+                SyncOutcome.Offline -> SyncUiState.Offline(strings.syncOfflineMsg)
                 is SyncOutcome.Error -> SyncUiState.Error(outcome.message)
                 is SyncOutcome.Updated -> SyncUiState.Success(
-                    "بسته «${outcome.title}» (نسخه ${outcome.version}) با ${outcome.count} سوال با موفقیت دریافت و ذخیره شد."
+                    "${strings.syncSuccessPrefix}: ${outcome.title} (${strings.versionPrefix}${outcome.version}, ${outcome.count})"
                 )
             }
         }
