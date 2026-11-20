@@ -4,34 +4,43 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Outer cell membrane ring inside 66dp safe zone (center 54,54 radius 27) -->
+    <!-- Pointed Persian arch framing the manuscript inside 66dp safe zone (21..87) -->
     <path
-        android:fillColor="#1A2EE6D6"
-        android:pathData="M54,27a27,27 0,1 0,0 54a27,27 0,1 0,0 -54z"
-        android:strokeWidth="2.8"
-        android:strokeColor="#2EE6D6" />
-    <!-- Inner organelle / DNA helix curves -->
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M42,35 C58,41 58,49 42,54 C26,59 26,67 42,73"
-        android:strokeWidth="3.2"
-        android:strokeLineCap="round"
-        android:strokeColor="#34D399" />
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M66,35 C50,41 50,49 66,54 C82,59 82,67 66,73"
-        android:strokeWidth="3.2"
-        android:strokeLineCap="round"
-        android:strokeColor="#2EE6D6" />
-    <!-- Base pair rungs -->
-    <path
-        android:fillColor="#00000000"
-        android:pathData="M45,42 L63,42 M41,54 L67,54 M45,66 L63,66"
+        android:fillColor="#1CE0A96D"
+        android:pathData="M31,74 L31,46 C31,34 42,27 54,23 C66,27 77,34 77,46 L77,74 Z"
         android:strokeWidth="2.4"
-        android:strokeLineCap="round"
-        android:strokeColor="#FBBF24" />
-    <!-- Glowing central nucleus node -->
+        android:strokeColor="#E0A96D"
+        android:strokeLineJoin="round" />
+    <!-- Open book left page -->
     <path
-        android:fillColor="#FBBF24"
-        android:pathData="M54,50a4,4 0,1 0,0 8a4,4 0,1 0,0 -8z" />
+        android:fillColor="#F6ECE1"
+        android:pathData="M54,53 C47,50 40,50 35,52 L35,72 C40,70 47,70 54,73 Z"
+        android:strokeWidth="1.6"
+        android:strokeColor="#8C5832"
+        android:strokeLineJoin="round" />
+    <!-- Open book right page -->
+    <path
+        android:fillColor="#EFE0CE"
+        android:pathData="M54,53 C61,50 68,50 73,52 L73,72 C68,70 61,70 54,73 Z"
+        android:strokeWidth="1.6"
+        android:strokeColor="#8C5832"
+        android:strokeLineJoin="round" />
+    <!-- Manuscript calligraphy lines -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,58 L50,58 M39,63 L49,63 M58,58 L69,58 M59,63 L69,63"
+        android:strokeWidth="1.5"
+        android:strokeColor="#5A3825"
+        android:strokeLineCap="round" />
+    <!-- Golden reed pen (Qalam) angled gracefully -->
+    <path
+        android:fillColor="#E0A96D"
+        android:pathData="M65,33 L69,36 L57,51 L53,48 Z" />
+    <path
+        android:fillColor="#F6ECE1"
+        android:pathData="M53,48 L57,51 L52,55 Z" />
+    <!-- Crown star above arch -->
+    <path
+        android:fillColor="#E0A96D"
+        android:pathData="M54,28 L56.2,32.5 L61,34 L56.2,35.5 L54,40 L51.8,35.5 L47,34 L51.8,32.5 Z" />
 </vector>

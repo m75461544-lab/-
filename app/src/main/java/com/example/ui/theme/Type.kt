@@ -15,36 +15,41 @@ val VazirmatnFontFamily = FontFamily(
     Font(R.font.vazirmatn, FontWeight.Bold)
 )
 
-val ZistTypography = Typography(
+val LalezarFontFamily = FontFamily(
+    Font(R.font.lalezar, FontWeight.Normal),
+    Font(R.font.lalezar, FontWeight.Bold)
+)
+
+val AppTypography = Typography(
     displaySmall = TextStyle(
-        fontFamily = VazirmatnFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-        lineHeight = 38.sp
+        fontFamily = LalezarFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 30.sp,
+        lineHeight = 40.sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = VazirmatnFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 22.sp,
-        lineHeight = 32.sp
+        fontFamily = LalezarFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 24.sp,
+        lineHeight = 34.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = VazirmatnFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 19.sp,
-        lineHeight = 28.sp
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        lineHeight = 30.sp
     ),
     titleLarge = TextStyle(
         fontFamily = VazirmatnFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 18.sp,
-        lineHeight = 26.sp
+        lineHeight = 28.sp
     ),
     titleMedium = TextStyle(
         fontFamily = VazirmatnFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
-        lineHeight = 24.sp
+        lineHeight = 25.sp
     ),
     titleSmall = TextStyle(
         fontFamily = VazirmatnFontFamily,
@@ -73,8 +78,8 @@ val ZistTypography = Typography(
     labelLarge = TextStyle(
         fontFamily = VazirmatnFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 14.sp,
-        lineHeight = 20.sp
+        fontSize = 13.sp,
+        lineHeight = 18.sp
     ),
     labelMedium = TextStyle(
         fontFamily = VazirmatnFontFamily,
@@ -86,6 +91,6 @@ val ZistTypography = Typography(
         fontFamily = VazirmatnFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
-        lineHeight = 16.sp
+        lineHeight = 15.sp
     )
 )

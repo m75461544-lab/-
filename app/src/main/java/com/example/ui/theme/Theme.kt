@@ -1,68 +1,75 @@
 package com.example.ui.theme
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.example.ui.i18n.AppLanguage
-import com.example.ui.i18n.AppStrings
-import com.example.ui.i18n.LocalAppLanguage
-import com.example.ui.i18n.LocalAppStrings
+import com.example.model.AppThemeMode
 
-private val BioluminescentLabScheme = darkColorScheme(
-    primary = BioCyan,
-    onPrimary = ObsidianBg,
-    primaryContainer = BioCyanContainer,
-    onPrimaryContainer = BioCyan,
-    secondary = ChloroplastEmerald,
-    onSecondary = ObsidianBg,
-    secondaryContainer = EmeraldContainer,
-    onSecondaryContainer = ChloroplastEmerald,
-    tertiary = AtpGold,
-    onTertiary = ObsidianBg,
-    tertiaryContainer = GoldContainer,
-    onTertiaryContainer = AtpGold,
-    error = CoralTrap,
-    onError = ObsidianBg,
-    errorContainer = CoralContainer,
-    onErrorContainer = CoralTrap,
-    background = ObsidianBg,
-    onBackground = TextPrimary,
-    surface = LabSurface,
-    onSurface = TextPrimary,
-    surfaceVariant = LabSurfaceElevated,
-    onSurfaceVariant = TextSecondary,
-    outline = LabBorder,
-    outlineVariant = LabSurfaceHighlight
-)
+private val LocalExtendedColors = staticCompositionLocalOf {
+    extendedColorsFor(AppThemeMode.DARK_BROWN)
+}
 
-private val LabShapes = Shapes(
+private val AppShapes = Shapes(
     small = RoundedCornerShape(10.dp),
     medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(22.dp),
-    extraLarge = RoundedCornerShape(28.dp)
+    large = RoundedCornerShape(24.dp)
 )
 
 @Composable
-fun ZistNegarTheme(
-    language: AppLanguage = AppLanguage.FA,
+private fun animateColorScheme(target: ColorScheme): ColorScheme {
+    val spec = tween<androidx.compose.ui.graphics.Color>(durationMillis = 450)
+    return target.copy(
+        primary = animateColorAsState(target.primary, spec, label = "primary").value,
+        onPrimary = animateColorAsState(target.onPrimary, spec, label = "onPrimary").value,
+        primaryContainer = animateColorAsState(target.primaryContainer, spec, label = "primaryContainer").value,
+        onPrimaryContainer = animateColorAsState(target.onPrimaryContainer, spec, label = "onPrimaryContainer").value,
+        secondary = animateColorAsState(target.secondary, spec, label = "secondary").value,
+        onSecondary = animateColorAsState(target.onSecondary, spec, label = "onSecondary").value,
+        background = animateColorAsState(target.background, spec, label = "background").value,
+        onBackground = animateColorAsState(target.onBackground, spec, label = "onBackground").value,
+        surface = animateColorAsState(target.surface, spec, label = "surface").value,
+        onSurface = animateColorAsState(target.onSurface, spec, label = "onSurface").value,
+        surfaceVariant = animateColorAsState(target.surfaceVariant, spec, label = "surfaceVariant").value,
+        onSurfaceVariant = animateColorAsState(target.onSurfaceVariant, spec, label = "onSurfaceVariant").value,
+        outline = animateColorAsState(target.outline, spec, label = "outline").value
+    )
+}
+
+@Composable
+fun GanjinehTheme(
+    themeMode: AppThemeMode = AppThemeMode.DARK_BROWN,
     content: @Composable () -> Unit
 ) {
-    val strings = AppStrings.forLanguage(language)
+    val targetScheme = colorSchemeFor(themeMode)
+    val animatedScheme = animateColorScheme(targetScheme)
+    val extended = extendedColorsFor(themeMode)
+
     CompositionLocalProvider(
-        LocalLayoutDirection provides language.layoutDirection,
-        LocalAppLanguage provides language,
-        LocalAppStrings provides strings
+        LocalLayoutDirection provides LayoutDirection.Rtl,
+        LocalExtendedColors provides extended
     ) {
         MaterialTheme(
-            colorScheme = BioluminescentLabScheme,
-            typography = ZistTypography,
-            shapes = LabShapes,
+            colorScheme = animatedScheme,
+            typography = AppTypography,
+            shapes = AppShapes,
             content = content
         )
     }
+}
+
+object GanjinehColors {
+    val current: ExtendedColors
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalExtendedColors.current
 }

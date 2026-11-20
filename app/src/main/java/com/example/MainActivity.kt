@@ -5,66 +5,39 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.ViewModelProvider
-import com.example.audio.PianoAudioEngine
-import com.example.data.local.AppDatabase
-import com.example.data.local.SettingsDataStore
-import com.example.data.remote.QuestionUpdateService
-import com.example.data.repository.BiologyRepository
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.i18n.AppLanguage
-import com.example.ui.navigation.ZistNegarAppRoot
-import com.example.ui.theme.ZistNegarTheme
-import com.example.ui.viewmodel.BiologyViewModel
-import com.example.ui.viewmodel.BiologyViewModelFactory
+import com.example.data.PreferencesRepository
+import com.example.ui.navigation.GanjinehAppRoot
+import com.example.ui.theme.GanjinehTheme
+import com.example.ui.viewmodel.GanjinehViewModel
+import com.example.ui.viewmodel.GanjinehViewModelFactory
 
 class MainActivity : ComponentActivity() {
-
-    private lateinit var audioEngine: PianoAudioEngine
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+            statusBarStyle = SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT
+            )
         )
 
-        val db = AppDatabase.getInstance(applicationContext)
-        val settingsStore = SettingsDataStore(applicationContext)
-        val updateService = QuestionUpdateService(applicationContext)
-        val repository = BiologyRepository(db.biologyDao(), settingsStore, updateService)
-        audioEngine = PianoAudioEngine()
-
-        val factory = BiologyViewModelFactory(repository, audioEngine)
-        val viewModel = ViewModelProvider(this, factory)[BiologyViewModel::class.java]
-
-        audioEngine.start()
-        lifecycle.addObserver(
-            LifecycleEventObserver { _, event ->
-                when (event) {
-                    Lifecycle.Event.ON_PAUSE -> audioEngine.pauseForLifecycle()
-                    Lifecycle.Event.ON_RESUME -> audioEngine.resumeForLifecycle()
-                    else -> Unit
-                }
-            }
-        )
+        val prefsRepo = PreferencesRepository(applicationContext)
+        val factory = GanjinehViewModelFactory(prefsRepo)
+        val viewModel = ViewModelProvider(this, factory)[GanjinehViewModel::class.java]
 
         setContent {
-            val settings by viewModel.settings.collectAsStateWithLifecycle()
-            val appLanguage = AppLanguage.fromCode(settings.languageCode)
-            ZistNegarTheme(language = appLanguage) {
-                ZistNegarAppRoot(viewModel = viewModel)
+            val progressState by viewModel.progressState.collectAsStateWithLifecycle()
+            GanjinehTheme(themeMode = progressState.themeMode) {
+                GanjinehAppRoot(viewModel = viewModel)
             }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (::audioEngine.isInitialized) {
-            audioEngine.release()
         }
     }
 }

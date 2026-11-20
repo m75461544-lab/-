@@ -13,20 +13,21 @@
                 android:endX="108"
                 android:endY="108"
                 android:type="linear">
-                <item android:color="#070D14" android:offset="0.0" />
-                <item android:color="#0E2236" android:offset="0.6" />
-                <item android:color="#0B2E36" android:offset="1.0" />
+                <item android:color="#18100C" android:offset="0.0" />
+                <item android:color="#2C1C14" android:offset="0.55" />
+                <item android:color="#40291D" android:offset="1.0" />
             </gradient>
         </aapt:attr>
     </path>
+    <!-- Subtle Persian Shamsa geometric rings -->
     <path
         android:fillColor="#00000000"
-        android:pathData="M54,54m-44,0a44,44 0,1 1,88 0a44,44 0,1 1,-88 0"
-        android:strokeWidth="0.6"
-        android:strokeColor="#222EE6D6" />
+        android:pathData="M54,14 L82,26 L94,54 L82,82 L54,94 L26,82 L14,54 L26,26 Z"
+        android:strokeWidth="0.9"
+        android:strokeColor="#33E0A96D" />
     <path
         android:fillColor="#00000000"
-        android:pathData="M54,54m-32,0a32,32 0,1 1,64 0a32,32 0,1 1,-64 0"
-        android:strokeWidth="0.6"
-        android:strokeColor="#1A34D399" />
+        android:pathData="M54,18 L79,29 L90,54 L79,79 L54,90 L29,79 L18,54 L29,29 Z"
+        android:strokeWidth="0.7"
+        android:strokeColor="#22F6ECE1" />
 </vector>
